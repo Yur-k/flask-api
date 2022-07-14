@@ -13,7 +13,7 @@ env:
 
 jobs:
   lint:
-    runs-on: ubuntu-lates
+    runs-on: ubuntu-18.04
     name: Lint
     steps:
 
