@@ -1,0 +1,141 @@
+name: CI-CD-Pipeline-to-AWS
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  REGISTRY: Yur-k/flask-api
+  HOST1: 52.59.231.113
+  HOST2: 35.157.50.134
+
+jobs:
+  lint:
+    runs-on: ubuntu-lates
+    name: Lint
+    steps:
+
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: action/setup-python@v4
+        with: 
+          python-version: "3.10"
+
+      - name: flake8 
+        uses: py-actions/flake8@v2
+
+  build_and_push:
+    runs-on: ubuntu-latest
+    name: Build and push docker image
+    needs: lint
+    outputs:
+      commit_hash: ${{ steps.commit_hash.outputs.commit_hash }}
+    steps:
+
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - id: commit_hash
+        run: echo "::set-output name=commit_hash::${GITHUB_SHA::7}"
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOCKEN }}
+      
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}:${{ steps.commit_hash.outputs.commit_hash }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    needs: build_and_push
+    env:
+      USERNAME: ubuntu
+      TAG: ${{ env.REGISTRY }}:${{ needs.build_and_push.outputs.commit_hash }}
+      # MYSQLDB_ROOT_PASSWORD: ${{ secrets.MYSQLDB_ROOT_PASSWORD }}
+      # MYSQLDB_DATABASE: ${{ secrets.MYSQLDB_DATABASE }}
+      # MYSQLDB_USER: ${{ secrets.MYSQLDB_USER }}
+      # MYSQLDB_PASSWORD: ${{ secrets.MYSQLDB_PASSWORD }}
+
+    steps:
+      - name: Deploy to EC2 instanse via SSH action
+        uses: appleboy/ssh-action@v0.1.
+        with:
+          host: ${{ env.HOST1 }},${{ env.HOST2 }}
+          username: ${{ env.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: |
+            ${{ secrets.DOCKER_USER }}, ${{ secrets.DOCKERHUB_TOKEN }}, 
+            ${{ secrets.MYSQLDB_ROOT_PASSWORD }}, ${{ secrets.MYSQLDB_DATABASE }}, 
+            ${{ secrets.MYSQLDB_USER }}, ${{ secrets.MYSQLDB_PASSWORD }}
+          port: 22
+          script: |
+            # login docker
+            docker login -u $DOCKER_USER -p $DOCKERHUB_TOKEN
+
+            # Create docker-compose
+            echo \
+            "version: '3.8'
+
+            services:
+              mysql:
+                container_name: mysql
+                image: mysql
+                restart: always
+                environment:
+                  - MYSQL_ROOT_PASSWORD=${MYSQLDB_ROOT_PASSWORD}
+                  - MYSQL_DATABASE=${MYSQLDB_DATABASE}
+                  - MYSQL_USER=${MYSQLDB_USER}
+                  - MYSQL_PASSWORD=${MYSQLDB_PASSWORD}
+                volumes:
+                  - mysql_pub:/var/lib/mysql
+
+              flask:
+                container_name: flask
+                image: yurcall/flask-api:${TAG}
+                restart: on-failure:20
+                environment:
+                  - DB_USERNAME=${MYSQLDB_USER}
+                  - DB_PASSWORD=${MYSQLDB_PASSWORD}
+                  - DB_HOSTNAME=mysql
+                  - DB_NAME=${MYSQLDB_DATABASE}
+                depends_on:
+                  - mysql
+                ports:
+                  - '5000:5000'
+
+            volumes:
+              mysql_pub:" > docker-compose.yml
+
+            docker compose up -d
+
+
+  report:
+    runs-on: ubuntu-latest
+    name: Report
+    needs: deploy
+    steps:
+      - name: Curl web-app1 - ${{ env.HOST1 }}
+        run: curl -v ${{ env.HOST1 }}:5000
+      - name: Curl web-app1 - ${{ env.HOST1 }} /api
+        run: curl -v ${{ env.HOST1 }}:5000/api
+        
+      - name: Curl web-app2 - ${{ env.HOST2 }}
+        run: curl -v ${{ env.HOST1 }}:5000
+      - name: Curl web-app2 - ${{ env.HOST2 }} /api
+        run: curl -v ${{ env.HOST2 }}:5000/api        
+
+
+
+
