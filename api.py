@@ -16,8 +16,8 @@ db_hostname = os.environ.get('DB_HOSTNAME')
 db_name = os.environ.get('DB_NAME')
 
 DB_URI = 'mysql+pymysql://{db_username}:{db_password}@{db_host}/{database}'\
-    .format( db_username=db_user, db_password=db_pass, 
-    db_host=db_hostname, database=db_name)
+    .format(db_username=db_user, db_password=db_pass,
+            db_host=db_hostname, database=db_name)
 
 engine = create_engine(DB_URI, echo=True)
 
@@ -90,7 +90,7 @@ def get_student(id):
 def add_student():
     json_data = request.get_json()
     new_student = Student(
-        name= json_data.get('name'),
+        name=json_data.get('name'),
         email=json_data.get('email'),
         age=json_data.get('age'),
         cellphone=json_data.get('cellphone')
@@ -128,10 +128,10 @@ def change_student(id):
     student_json = request.get_json()
     if not student_json:
         return {'message': 'Wrong data'}, 400
-    student.name=student_json.get('name'),
-    student.email=student_json.get('email'),
-    student.age=student_json.get('age'),
-    student.cellphone=student_json.get('cellphone')
+    student.name = student_json.get('name'),
+    student.email = student_json.get('email'),
+    student.age = student_json.get('age'),
+    student.cellphone = student_json.get('cellphone')
     try:
         db.session.commit()
     except Exception:
