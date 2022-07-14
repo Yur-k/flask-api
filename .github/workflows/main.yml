@@ -128,12 +128,12 @@ jobs:
       - name: Curl web-app1 - ${{ env.HOST1 }}
         run: for i in `seq 1 3`; do curl -v ${{ env.HOST1 }}:5000; done
       - name: Curl web-app1 - ${{ env.HOST1 }} /api
-        run: for i in `seq 1 3`; do curl -v ${{ env.HOST1 }}:5000; done
+        run: for i in `seq 1 3`; do curl -v ${{ env.HOST1 }}:5000/api; done
         
       - name: Curl web-app2 - ${{ env.HOST2 }}
         run: for i in `seq 1 3`; do curl -v ${{ env.HOST2 }}:5000; done
       - name: Curl web-app2 - ${{ env.HOST2 }} /api
-        run: for i in `seq 1 3`; do curl -v ${{ env.HOST2 }}:5000; done        
+        run: for i in `seq 1 3`; do curl -v ${{ env.HOST2 }}:5000/api; done        
 
 
 
