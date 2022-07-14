@@ -130,7 +130,7 @@ jobs:
     needs: deploy
     steps:
       - name: Curl /
-      - run: for i in `seq 1 3`; do curl -v ${{ matrix.host }}:5000; done
+        run: for i in `seq 1 3`; do curl -v ${{ matrix.host }}:5000; done
       - name: Curl /api
-      - run: for i in `seq 1 3`; do curl -v ${{ matrix.host }}:5000/api; done
+        run: for i in `seq 1 3`; do curl -v ${{ matrix.host }}:5000/api; done
       
