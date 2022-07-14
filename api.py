@@ -16,7 +16,8 @@ db_hostname = os.environ.get('DB_HOSTNAME')
 db_name = os.environ.get('DB_NAME')
 
 DB_URI = 'mysql+pymysql://{db_username}:{db_password}@{db_host}/{database}'\
-        .format(db_username=db_user, db_password=db_pass, db_host=db_hostname, database=db_name)
+    .format( db_username=db_user, db_password=db_pass, 
+    db_host=db_hostname, database=db_name)
 
 engine = create_engine(DB_URI, echo=True)
 
@@ -59,12 +60,12 @@ class StudentSchema(Schema):
     cellphone = fields.Str()
 
 
-@app.route('/', methods = ['GET'])
+@app.route('/', methods=['GET'])
 def home():
     return render_template("index.html"), 200
 
 
-@app.route('/api', methods = ['GET'])
+@app.route('/api', methods=['GET'])
 def api_main():
     return send_file('api_doc.json'), 200
 
@@ -77,7 +78,7 @@ def get_all_students():
     return jsonify(response), 200
 
 
-@app.route('/api/students/get/<int:id>', methods = ['GET'])
+@app.route('/api/students/get/<int:id>', methods=['GET'])
 def get_student(id):
     student_info = Student.get_by_id(id)
     serializer = StudentSchema()
@@ -85,7 +86,7 @@ def get_student(id):
     return jsonify(response), 200
 
 
-@app.route('/api/students/add', methods = ['POST'])
+@app.route('/api/students/add', methods=['POST'])
 def add_student():
     json_data = request.get_json()
     new_student = Student(
@@ -100,7 +101,7 @@ def add_student():
     return jsonify(data), 201
 
 
-@app.route('/api/students/modify/<int:id>', methods = ['PATCH'])
+@app.route('/api/students/modify/<int:id>', methods=['PATCH'])
 def modify_student(id):
     student = Student.get_by_id(id)
     student_json = request.get_json()
@@ -114,14 +115,14 @@ def modify_student(id):
         student.cellphone = student_json.get('cellphone')
     try:
         db.session.commit()
-    except:
+    except Exception:
         return jsonify("Something went wrong!"), 500
     serializer = StudentSchema()
     data = serializer.dump(student)
     return jsonify(data), 200
 
 
-@app.route('/api/students/change/<int:id>', methods = ['PUT'])
+@app.route('/api/students/change/<int:id>', methods=['PUT'])
 def change_student(id):
     student = Student.get_by_id(id)
     student_json = request.get_json()
@@ -133,14 +134,14 @@ def change_student(id):
     student.cellphone=student_json.get('cellphone')
     try:
         db.session.commit()
-    except:
+    except Exception:
         return jsonify("Something went wrong!"), 500
     serializer = StudentSchema()
     data = serializer.dump(student)
     return data, 200
 
 
-@app.route('/api/students/delete/<int:id>', methods = ['DELETE'])
+@app.route('/api/students/delete/<int:id>', methods=['DELETE'])
 def del_student(id):
     student = Student.get_by_id(id)
     if not student:
@@ -149,12 +150,12 @@ def del_student(id):
     return "", 204
 
 
-@app.route('/api/health-check/ok', methods = ['GET'])
+@app.route('/api/health-check/ok', methods=['GET'])
 def health_check_ok():
     return {'message': 'Ok'}, 200
 
 
-@app.route('/api/health-check/bad', methods = ['GET'])
+@app.route('/api/health-check/bad', methods=['GET'])
 def health_check_bad():
     return "", 500
 
