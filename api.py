@@ -1,7 +1,7 @@
-from asyncio.proactor_events import _ProactorBasePipeTransport
+
 import os
 
-from flask import Flask, jsonify, request, render_template, send_file 
+from flask import Flask, jsonify, request, render_template, send_file
 from flask_sqlalchemy import SQLAlchemy
 import dotenv
 from sqlalchemy import create_engine
@@ -15,7 +15,8 @@ db_pass = os.environ.get('DB_PASSWORD')
 db_hostname = os.environ.get('DB_HOSTNAME')
 db_name = os.environ.get('DB_NAME')
 
-DB_URI = 'mysql+pymysql://{db_username}:{db_password}@{db_host}/{database}'.format(db_username=db_user, db_password=db_pass, db_host=db_hostname, database=db_name)
+DB_URI = 'mysql+pymysql://{db_username}:{db_password}@{db_host}/{database}'\
+        .format(db_username=db_user, db_password=db_pass, db_host=db_hostname, database=db_name)
 
 engine = create_engine(DB_URI, echo=True)
 
@@ -23,6 +24,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
 
 class Student(db.Model):
     __tablename__ = "student"
@@ -48,6 +50,7 @@ class Student(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+
 class StudentSchema(Schema):
     id = fields.Integer()
     name = fields.Str()
@@ -55,13 +58,16 @@ class StudentSchema(Schema):
     age = fields.Integer()
     cellphone = fields.Str()
 
+
 @app.route('/', methods = ['GET'])
 def home():
     return render_template("index.html"), 200
 
+
 @app.route('/api', methods = ['GET'])
 def api_main():
     return send_file('api_doc.json'), 200
+
 
 @app.route('/api/students', methods=['GET'])
 def get_all_students():
@@ -70,12 +76,14 @@ def get_all_students():
     response = student_list.dump(students)
     return jsonify(response), 200
 
+
 @app.route('/api/students/get/<int:id>', methods = ['GET'])
 def get_student(id):
     student_info = Student.get_by_id(id)
     serializer = StudentSchema()
     response = serializer.dump(student_info)
     return jsonify(response), 200
+
 
 @app.route('/api/students/add', methods = ['POST'])
 def add_student():
@@ -90,6 +98,7 @@ def add_student():
     serializer = StudentSchema()
     data = serializer.dump(new_student)
     return jsonify(data), 201
+
 
 @app.route('/api/students/modify/<int:id>', methods = ['PATCH'])
 def modify_student(id):
@@ -111,6 +120,7 @@ def modify_student(id):
     data = serializer.dump(student)
     return jsonify(data), 200
 
+
 @app.route('/api/students/change/<int:id>', methods = ['PUT'])
 def change_student(id):
     student = Student.get_by_id(id)
@@ -129,6 +139,7 @@ def change_student(id):
     data = serializer.dump(student)
     return data, 200
 
+
 @app.route('/api/students/delete/<int:id>', methods = ['DELETE'])
 def del_student(id):
     student = Student.get_by_id(id)
@@ -137,13 +148,16 @@ def del_student(id):
     student.delete()
     return "", 204
 
+
 @app.route('/api/health-check/ok', methods = ['GET'])
 def health_check_ok():
     return {'message': 'Ok'}, 200
 
+
 @app.route('/api/health-check/bad', methods = ['GET'])
 def health_check_bad():
     return "", 500
+
 
 if __name__ == '__main__':
     if not database_exists(engine.url):
