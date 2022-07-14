@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: Yur-k/flask-api
+  REGISTRY: yurcall/flask-api
   HOST1: 52.59.231.113
   HOST2: 35.157.50.134
 
