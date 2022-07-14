@@ -59,7 +59,7 @@ jobs:
   deploy:
     strategy:
       matrix:
-       host: [ '${{ HOST1 }}' , '${{ HOST2 }}' ]
+       host: [ 52.59.231.113 , 35.157.50.134 ]
     runs-on: ubuntu-latest
     name: Deploy
     needs: build_and_push
@@ -124,7 +124,7 @@ jobs:
   report:
     strategy:
       matrix:
-       host: [ '${{ HOST1 }}' , '${{ HOST2 }}' ]
+       host: [ 52.59.231.113 , 35.157.50.134 ]
     runs-on: ubuntu-latest
     name: Report
     needs: deploy
